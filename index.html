@@ -850,20 +850,25 @@ function effectiveAmount(row) {
 // ════════════════════════════════════════════════════
 //  API calls (all include user email for filtering)
 // ════════════════════════════════════════════════════
+// All requests use GET to avoid CORS preflight errors with Apps Script
 async function apiFetch(params={}) {
   if (!currentUser) return null;
-  const url = CONFIG.API + '?user=' + encodeURIComponent(currentUser.email) + '&' + new URLSearchParams(params);
+  const p = { user: currentUser.email, ...params };
+  const url = CONFIG.API + '?' + new URLSearchParams(p);
   const r = await fetch(url);
   return r.json();
 }
 
+// "POST" operations are sent as GET params — Apps Script handles both
 async function apiPost(payload) {
   if (!currentUser) return null;
-  const r = await fetch(CONFIG.API, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({...payload, user: currentUser.email})
+  const p = { user: currentUser.email, ...payload };
+  // Encode cc_breakdown and similar fields safely
+  Object.keys(p).forEach(k => {
+    if (typeof p[k] === 'boolean') p[k] = String(p[k]);
   });
+  const url = CONFIG.API + '?' + new URLSearchParams(p);
+  const r = await fetch(url);
   return r.json();
 }
 
@@ -1025,7 +1030,7 @@ async function saveExpense() {
   btn.disabled = true; btn.textContent = 'Saving…';
 
   try {
-    await apiPost({
+    const res = await apiPost({
       action: 'add_expense',
       type, amount: storedAmount, date, day,
       category:        selectedCat || type,
@@ -1035,10 +1040,18 @@ async function saveExpense() {
       others_total:    othersTotal,
       cc_breakdown:    ccBreakdown
     });
-    showToast('✅ Saved — '+type);
-    hideAdd();
-    fetchAll();
-  } catch(e) { showToast('❌ Error — check API URL'); }
+    if (res && res.error) {
+      showToast('API error: ' + res.error);
+      console.error('API error:', res);
+    } else {
+      showToast('Saved ' + type);
+      hideAdd();
+      fetchAll();
+    }
+  } catch(e) {
+    console.error('Save failed:', e);
+    showToast('Network error - check F12 console');
+  }
 
   btn.disabled = false; btn.textContent = 'Save expense';
 }
@@ -1228,4 +1241,4 @@ function greeting() {
 }
 </script>
 </body>
-</html>  
+</html>
