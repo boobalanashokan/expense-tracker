@@ -217,11 +217,13 @@ body{
 .txn-meta{font-size:11px;color:var(--muted);margin-top:2px}
 .txn-amt{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;white-space:nowrap}
 .txn-amt.out{color:#f87171}
+.txn-amt.in{color:#34d399}
 .txn-amt.excl{color:var(--muted2);text-decoration:line-through}
 .badge{display:inline-block;font-size:9px;font-weight:500;padding:1px 5px;border-radius:4px;margin-left:4px;vertical-align:middle}
 .badge-excl{background:var(--red-soft);color:#f87171}
 .badge-split{background:var(--orange-soft);color:var(--orange)}
 .badge-cc{background:var(--blue-soft);color:#93c5fd}
+.badge-refund{background:#0d3d2e;color:#34d399}
 
 /* ── Bottom Nav ────────────────────────────────────────────── */
 .nav{
@@ -274,6 +276,7 @@ body{
   letter-spacing:-.03em;color:#fff;
   display:flex;align-items:center;justify-content:center;gap:2px;
 }
+.amt-big.refund-mode{color:#34d399}
 .amt-cursor{width:3px;height:36px;background:var(--blue);border-radius:2px;animation:blink 1s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .cat-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
@@ -285,6 +288,8 @@ body{
   background:var(--card);transition:all .15s;white-space:nowrap;
 }
 .chip.active{background:var(--blue-soft);color:#93c5fd;border-color:#3b82f6}
+.chip.refund-chip{border-color:#10b981;color:#34d399;background:#0d3d2e}
+.chip.refund-chip.active{background:#0a3028;border-color:#34d399;color:#34d399}
 .add-body{padding:1rem}
 .field-block{margin-bottom:12px}
 .field-box{
@@ -295,6 +300,14 @@ body{
 }
 .field-box:focus{outline:none;border-color:var(--blue)}
 .field-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+
+/* Refund notice */
+.refund-notice{
+  background:#0d3d2e;border:1px solid #1a5c3f;
+  border-radius:var(--radius);padding:10px 13px;
+  margin-bottom:12px;font-size:12px;color:#34d399;
+  display:flex;align-items:center;gap:8px;
+}
 
 /* CC section */
 .cc-box{
@@ -353,6 +366,10 @@ body{
 }
 .save-btn:hover{opacity:.9}
 .save-btn:disabled{opacity:.5;cursor:not-allowed}
+.save-btn.refund-mode{
+  background:linear-gradient(135deg,#10b981,#059669);
+  box-shadow:0 4px 20px rgba(16,185,129,0.3);
+}
 
 /* ── Stats screen ──────────────────────────────────────────── */
 .stats-cards{
@@ -497,7 +514,7 @@ body{
       <label class="lbl">Email</label>
       <input id="l-email" class="inp" type="email" placeholder="you@gmail.com"/>
       <label class="lbl">Password</label>
-      <input id="l-pass" class="inp" type="password" placeholder="••••••••" onkeydown="if(e.key==='Enter')doEmailAuth()"/>
+      <input id="l-pass" class="inp" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doEmailAuth()"/>
       <button class="btn-primary" id="l-btn" onclick="doEmailAuth()">Sign in</button>
       <div class="divider"><div class="divider-line"></div><span>or</span><div class="divider-line"></div></div>
       <button class="btn-google" onclick="doGoogle()">
@@ -532,6 +549,10 @@ body{
         <div class="qa-icon" style="background:#1d3a6e">➕</div>
         <div class="qa-lbl">Add</div>
       </div>
+      <div class="qa" onclick="showRefund()">
+        <div class="qa-icon" style="background:#0d3d2e">↩️</div>
+        <div class="qa-lbl">Refund</div>
+      </div>
       <div class="qa" onclick="switchScreen('stats')">
         <div class="qa-icon" style="background:#0d3d2e">📊</div>
         <div class="qa-lbl">Analytics</div>
@@ -555,15 +576,20 @@ body{
     <div class="add-header">
       <div class="add-header-row">
         <div class="back-btn" onclick="hideAdd()">←</div>
-        <div class="add-header-title">Add expense</div>
+        <div class="add-header-title" id="add-screen-title">Add expense</div>
       </div>
       <div class="amt-display">
-        <div class="amt-big">₹<span id="add-amt-display">0</span><div class="amt-cursor"></div></div>
+        <div class="amt-big" id="amt-big-display">₹<span id="add-amt-display">0</span><div class="amt-cursor"></div></div>
       </div>
     </div>
     <div class="add-body">
       <!-- Category chips -->
       <div class="cat-scroll" id="cat-chips-row" style="margin-bottom:14px"></div>
+
+      <!-- Refund notice -->
+      <div id="refund-notice" class="refund-notice" style="display:none">
+        ↩️ This will be saved as a <strong>negative amount</strong> and deducted from your total spend.
+      </div>
 
       <!-- Fields -->
       <div class="field-row-2">
@@ -598,8 +624,8 @@ body{
         </div>
       </div>
 
-      <!-- Split toggle -->
-      <div class="toggle-row">
+      <!-- Split toggle — hidden for refunds -->
+      <div class="toggle-row" id="split-toggle-row">
         <span class="toggle-lbl">Split equally</span>
         <label class="tog"><input type="checkbox" id="tog-split" onchange="onSplitToggle()"/><span class="tog-slider"></span></label>
       </div>
@@ -655,11 +681,15 @@ body{
     <div class="history-filter" id="hist-filter">
       <div class="filter-chip active" onclick="setFilter('all',this)">All</div>
       <div class="filter-chip" onclick="setFilter('Food',this)">Food</div>
+      <div class="filter-chip" onclick="setFilter('Breakfast',this)">Breakfast</div>
+      <div class="filter-chip" onclick="setFilter('Lunch',this)">Lunch</div>
+      <div class="filter-chip" onclick="setFilter('Snacks',this)">Snacks</div>
       <div class="filter-chip" onclick="setFilter('Grocery',this)">Grocery</div>
       <div class="filter-chip" onclick="setFilter('Bill',this)">Bill</div>
       <div class="filter-chip" onclick="setFilter('Transport',this)">Transport</div>
       <div class="filter-chip" onclick="setFilter('Family',this)">Family</div>
       <div class="filter-chip" onclick="setFilter('Entertainment',this)">Entertainment</div>
+      <div class="filter-chip" onclick="setFilter('Refund',this)">↩ Refunds</div>
     </div>
     <div class="hist-table" id="hist-list">
       <div class="empty"><div class="loading-spinner"></div></div>
@@ -721,18 +751,15 @@ body{
 // ════════════════════════════════════════════════════
 
 const CONFIG = {
-  // 1. Your Apps Script Web App URL
   API: "https://script.google.com/macros/s/AKfycbzAAKTyxRnu_nidhAZjnLMGT_WrnfR6R4nO-_xuqDukvOWVg8Ns7eOzvIvrnuktvbM/exec",
-
-  // 2. Firebase config — get from Firebase Console → Project Settings
   FIREBASE: {
-  apiKey: "AIzaSyDsQGBgcpAiuuGZ9tMQWv5f4zHrH1mrURQ",
-  authDomain: "kanakku-d10bb.firebaseapp.com",
-  projectId: "kanakku-d10bb",
-  storageBucket: "kanakku-d10bb.firebasestorage.app",
-  messagingSenderId: "897105367693",
-  appId: "1:897105367693:web:cd91105c4f2bda44dfc8c4",
-  measurementId: "G-YMT5G8ZPDP"
+    apiKey: "AIzaSyDsQGBgcpAiuuGZ9tMQWv5f4zHrH1mrURQ",
+    authDomain: "kanakku-d10bb.firebaseapp.com",
+    projectId: "kanakku-d10bb",
+    storageBucket: "kanakku-d10bb.firebasestorage.app",
+    messagingSenderId: "897105367693",
+    appId: "1:897105367693:web:cd91105c4f2bda44dfc8c4",
+    measurementId: "G-YMT5G8ZPDP"
   }
 };
 
@@ -748,7 +775,6 @@ let currentUser = null;
 auth.onAuthStateChanged(user => {
   currentUser = user;
   if (user) {
-    // Logged in
     document.getElementById('avatar-letter').textContent = (user.displayName || user.email || '?')[0].toUpperCase();
     if (user.photoURL) {
       document.getElementById('avatar-letter').innerHTML = `<img src="${user.photoURL}" alt="avatar"/>`;
@@ -823,14 +849,21 @@ function friendlyAuthError(code) {
 //  State
 // ════════════════════════════════════════════════════
 let allData    = [];
-let allRules   = [];   // array of lowercase strings
+let allRules   = [];
 let ccPeople   = [];
 let dailyChart = null;
 let histFilter = 'all';
+let isRefundMode = false;
 
-const CATS = ['Food','Grocery','Bill','Transport','Family','Entertainment','Subscription','Health','Shopping','Other'];
-const CAT_ICONS = {Food:'🍛',Grocery:'🛒',Bill:'⚡',Transport:'🚗',Family:'👨‍👩‍👧',Entertainment:'🎬',Subscription:'📱',Health:'💊',Shopping:'🛍️',Other:'📌'};
-const CAT_COLORS = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6b7280'];
+// ── Categories — added Breakfast, Lunch, Snacks ──────────────
+const CATS = ['Food','Breakfast','Lunch','Snacks','Grocery','Bill','Transport','Family','Entertainment','Subscription','Health','Shopping','Other'];
+const CAT_ICONS = {
+  Food:'🍛', Breakfast:'🍳', Lunch:'🥗', Snacks:'🍿',
+  Grocery:'🛒', Bill:'⚡', Transport:'🚗', Family:'👨‍👩‍👧',
+  Entertainment:'🎬', Subscription:'📱', Health:'💊',
+  Shopping:'🛍️', Other:'📌', Refund:'↩️'
+};
+const CAT_COLORS = ['#10b981','#f97316','#84cc16','#facc15','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#a78bfa','#fb923c','#6b7280','#34d399'];
 
 // ════════════════════════════════════════════════════
 //  Exclusion logic
@@ -842,15 +875,16 @@ function isExcluded(type) {
 function effectiveAmount(row) {
   if (isExcluded(row.type)) return 0;
   const amt = parseFloat(row.amount) || 0;
+  // Refunds are already stored as negative — return as-is
+  if ((row.category||'').toLowerCase() === 'refund' || (row.type||'').toLowerCase() === 'refund') return amt;
   const others = parseFloat(row.others_total) || 0;
   if ((row.type||'').toLowerCase().trim() === 'bill' && others > 0) return Math.max(0, amt - others);
   return amt;
 }
 
 // ════════════════════════════════════════════════════
-//  API calls (all include user email for filtering)
+//  API calls
 // ════════════════════════════════════════════════════
-// All requests use GET to avoid CORS preflight errors with Apps Script
 async function apiFetch(params={}) {
   if (!currentUser) return null;
   const p = { user: currentUser.email, ...params };
@@ -859,11 +893,9 @@ async function apiFetch(params={}) {
   return r.json();
 }
 
-// "POST" operations are sent as GET params — Apps Script handles both
 async function apiPost(payload) {
   if (!currentUser) return null;
   const p = { user: currentUser.email, ...payload };
-  // Encode cc_breakdown and similar fields safely
   Object.keys(p).forEach(k => {
     if (typeof p[k] === 'boolean') p[k] = String(p[k]);
   });
@@ -904,8 +936,7 @@ function switchScreen(name) {
   closePopover();
 }
 
-function showAdd() {
-  // init form
+function initAddForm() {
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
   document.getElementById('f-amount').value = '';
   document.getElementById('f-type').value = '';
@@ -915,9 +946,37 @@ function showAdd() {
   document.getElementById('split-section').style.display = 'none';
   document.getElementById('cc-section').style.display = 'none';
   ccPeople = [];
+}
+
+function showAdd() {
+  isRefundMode = false;
+  initAddForm();
+  document.getElementById('add-screen-title').textContent = 'Add expense';
+  document.getElementById('amt-big-display').classList.remove('refund-mode');
+  document.getElementById('refund-notice').style.display = 'none';
+  document.getElementById('split-toggle-row').style.display = 'flex';
+  document.getElementById('save-btn').textContent = 'Save expense';
+  document.getElementById('save-btn').classList.remove('refund-mode');
   renderCatChips('');
   showScreen('add');
 }
+
+function showRefund() {
+  isRefundMode = true;
+  initAddForm();
+  document.getElementById('add-screen-title').textContent = 'Add refund / credit';
+  document.getElementById('amt-big-display').classList.add('refund-mode');
+  document.getElementById('refund-notice').style.display = 'flex';
+  document.getElementById('split-toggle-row').style.display = 'none';
+  document.getElementById('split-section').style.display = 'none';
+  document.getElementById('save-btn').textContent = 'Save refund';
+  document.getElementById('save-btn').classList.add('refund-mode');
+  // Pre-select Refund category and set description
+  selectedCat = 'Refund';
+  renderCatChipsRefund();
+  showScreen('add');
+}
+
 function hideAdd() { showScreen('home'); }
 
 function updateNavActive(name) {
@@ -939,22 +998,37 @@ function renderCatChips(active) {
   `).join('');
 }
 
+function renderCatChipsRefund() {
+  // In refund mode show normal cats + a highlighted Refund chip
+  const allCatsForRefund = [...CATS, 'Refund'];
+  document.getElementById('cat-chips-row').innerHTML = allCatsForRefund.map(c => `
+    <div class="chip ${c==='Refund'?'refund-chip':''} ${c===selectedCat?'active':''}" onclick="selectCat('${c}')">${CAT_ICONS[c]||'•'} ${c}</div>
+  `).join('');
+}
+
 function selectCat(c) {
-  renderCatChips(c);
-  // Auto-fill type if empty
+  selectedCat = c;
+  if (isRefundMode) {
+    renderCatChipsRefund();
+  } else {
+    renderCatChips(c);
+  }
   if (!document.getElementById('f-type').value) document.getElementById('f-type').value = c;
   checkBillMode();
 }
 
 function onTypeInput() {
   const val = document.getElementById('f-type').value;
-  // auto-select category chip
   const match = CATS.find(c => c.toLowerCase() === val.toLowerCase());
-  if (match) renderCatChips(match);
+  if (match) {
+    selectedCat = match;
+    if (isRefundMode) renderCatChipsRefund(); else renderCatChips(match);
+  }
   checkBillMode();
 }
 
 function checkBillMode() {
+  if (isRefundMode) return; // no CC bill logic for refunds
   const val = (document.getElementById('f-type').value || '').toLowerCase().trim();
   const isBill = val === 'bill';
   document.getElementById('cc-section').style.display = isBill ? 'block' : 'none';
@@ -1019,12 +1093,19 @@ async function saveExpense() {
 
   if (!type || isNaN(amount) || !date) { showToast('⚠️ Fill type, amount and date'); return; }
 
-  const isBill  = type.toLowerCase() === 'bill';
-  const isSplit = document.getElementById('tog-split').checked;
+  const isBill  = !isRefundMode && type.toLowerCase() === 'bill';
+  const isSplit = !isRefundMode && document.getElementById('tog-split').checked;
   const splitN  = isSplit ? (parseInt(document.getElementById('f-split-n').value)||2) : 1;
   const othersTotal   = isBill ? ccPeople.reduce((s,p) => s+(p.amount||0), 0) : 0;
   const ccBreakdown   = isBill ? ccPeople.filter(p=>p.name||p.amount).map(p=>`${p.name}:${p.amount}`).join('|') : '';
-  const storedAmount  = isSplit ? (amount/splitN) : amount;
+
+  // For refunds: store as negative amount
+  let storedAmount;
+  if (isRefundMode) {
+    storedAmount = -(Math.abs(amount)); // always negative
+  } else {
+    storedAmount = isSplit ? (amount/splitN) : amount;
+  }
 
   const btn = document.getElementById('save-btn');
   btn.disabled = true; btn.textContent = 'Saving…';
@@ -1032,19 +1113,23 @@ async function saveExpense() {
   try {
     const res = await apiPost({
       action: 'add_expense',
-      type, amount: storedAmount, date, day,
-      category:        selectedCat || type,
+      type,
+      amount: storedAmount,
+      date,
+      day,
+      category:        isRefundMode ? 'Refund' : (selectedCat || type),
       original_amount: amount,
       is_split:        isSplit ? 'yes' : 'no',
       split_count:     splitN,
       others_total:    othersTotal,
-      cc_breakdown:    ccBreakdown
+      cc_breakdown:    ccBreakdown,
+      is_refund:       isRefundMode ? 'yes' : 'no'
     });
     if (res && res.error) {
       showToast('API error: ' + res.error);
       console.error('API error:', res);
     } else {
-      showToast('Saved ' + type);
+      showToast(isRefundMode ? '↩️ Refund saved — ' + type : 'Saved ' + type);
       hideAdd();
       fetchAll();
     }
@@ -1053,7 +1138,8 @@ async function saveExpense() {
     showToast('Network error - check F12 console');
   }
 
-  btn.disabled = false; btn.textContent = 'Save expense';
+  btn.disabled = false;
+  btn.textContent = isRefundMode ? 'Save refund' : 'Save expense';
 }
 
 // ════════════════════════════════════════════════════
@@ -1062,19 +1148,34 @@ async function saveExpense() {
 function txnHTML(r, showMeta=true) {
   const eff   = effectiveAmount(r);
   const excl  = isExcluded(r.type);
-  const isBill = (r.type||'').toLowerCase().trim()==='bill' && parseFloat(r.others_total)>0;
+  const isRef = (r.category||'').toLowerCase() === 'refund' || parseFloat(r.amount) < 0;
+  const isBill = !isRef && (r.type||'').toLowerCase().trim()==='bill' && parseFloat(r.others_total)>0;
   const isSpl  = r.is_split === 'yes';
   const orig  = parseFloat(r.original_amount || r.amount) || 0;
   const cat   = r.category || r.type;
-  const ci    = CATS.indexOf(cat);
+  const ci    = [...CATS, 'Refund'].indexOf(cat);
   const bg    = ci>=0 ? CAT_COLORS[ci]+'22' : '#ffffff11';
   const icon  = CAT_ICONS[cat] || '💸';
   let badges  = '';
   if (excl)   badges += '<span class="badge badge-excl">excluded</span>';
+  if (isRef)  badges += '<span class="badge badge-refund">refund</span>';
   if (isBill)  badges += '<span class="badge badge-cc">CC split</span>';
   if (isSpl)   badges += '<span class="badge badge-split">÷'+r.split_count+'</span>';
   const metaDate = r.date ? r.date.slice(5).replace('-','/') : '';
   const meta = [metaDate, r.day].filter(Boolean).join(' · ');
+
+  let amtClass, amtDisplay;
+  if (excl) {
+    amtClass = 'excl';
+    amtDisplay = '₹' + Math.abs(orig).toLocaleString();
+  } else if (isRef) {
+    amtClass = 'in';
+    amtDisplay = '+₹' + Math.abs(eff).toLocaleString();
+  } else {
+    amtClass = 'out';
+    amtDisplay = '₹' + Math.abs(eff).toLocaleString();
+  }
+
   return `
     <div class="txn">
       <div class="txn-ic" style="background:${bg}">${icon}</div>
@@ -1082,14 +1183,14 @@ function txnHTML(r, showMeta=true) {
         <div class="txn-name">${r.type}${badges}</div>
         ${showMeta && meta ? `<div class="txn-meta">${meta}</div>` : ''}
       </div>
-      <div class="txn-amt ${excl?'excl':'out'}">₹${Math.abs(excl?orig:eff).toLocaleString()}</div>
+      <div class="txn-amt ${amtClass}">${amtDisplay}</div>
     </div>`;
 }
 
 function renderHome() {
   const eff   = allData.map(r => ({...r, e: effectiveAmount(r)}));
-  const total = eff.reduce((s,r) => s+r.e, 0);
-  const days  = [...new Set(eff.filter(r=>r.e>0).map(r=>r.date))].length;
+  const total = eff.reduce((s,r) => s+r.e, 0); // refunds are negative so they auto-subtract
+  const days  = [...new Set(eff.filter(r=>r.e!==0).map(r=>r.date))].length;
   document.getElementById('hero-amt').textContent   = '₹'+Math.round(total).toLocaleString();
   document.getElementById('hero-sub').textContent   = 'your actual spend';
   document.getElementById('hero-days').textContent  = days;
@@ -1103,11 +1204,16 @@ function renderHome() {
 function renderStats() {
   const eff   = allData.map(r => ({...r, e: effectiveAmount(r)}));
   const total = eff.reduce((s,r) => s+r.e, 0);
-  const days  = [...new Set(eff.filter(r=>r.e>0).map(r=>r.date))].length;
+  const days  = [...new Set(eff.filter(r=>r.e!==0).map(r=>r.date))].length;
   const avg   = days ? total/days : 0;
-  // cats
+  // cats — exclude refunds from category chart, track separately
   const cats = {};
-  eff.forEach(r => { if(r.e>0){ const k=r.category||r.type; cats[k]=(cats[k]||0)+r.e; } });
+  eff.forEach(r => {
+    if(r.e > 0){
+      const k=r.category||r.type;
+      cats[k]=(cats[k]||0)+r.e;
+    }
+  });
   const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   const top    = sorted[0];
   document.getElementById('s-total').textContent  = '₹'+Math.round(total).toLocaleString();
@@ -1118,7 +1224,9 @@ function renderStats() {
 
   // Daily chart
   const byDate = {};
-  eff.forEach(r => { if(r.e>0) byDate[r.date]=(byDate[r.date]||0)+r.e; });
+  eff.forEach(r => {
+    if(r.e!==0) byDate[r.date]=(byDate[r.date]||0)+r.e;
+  });
   const dl = Object.keys(byDate).sort();
   const dv = dl.map(d => Math.round(byDate[d]));
   if (dailyChart) dailyChart.destroy();
@@ -1128,7 +1236,7 @@ function renderStats() {
       type:'bar',
       data:{ labels:dl.map(d=>d.slice(5).replace('-','/')), datasets:[{
         label:'₹', data:dv,
-        backgroundColor:'rgba(59,130,246,.7)',
+        backgroundColor: dv.map(v => v < 0 ? 'rgba(52,211,153,.7)' : 'rgba(59,130,246,.7)'),
         borderRadius:6, borderSkipped:false
       }]},
       options:{
@@ -1143,19 +1251,22 @@ function renderStats() {
   }
 
   // Cat bars
-  const maxAmt = sorted[0]?.[1]||1;
+  const catTotal = sorted.reduce((s,[,v])=>s+v,0)||1;
   document.getElementById('cat-bars-wrap').innerHTML = sorted.length ? sorted.map(([k,v],i)=>`
     <div class="cat-bar-row">
       <span class="cat-bar-name">${CAT_ICONS[k]||'•'} ${k}</span>
-      <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${Math.round(v/maxAmt*100)}%;background:${CAT_COLORS[i%CAT_COLORS.length]}"></div></div>
-      <span class="cat-bar-pct">${Math.round(v/total*100)}%</span>
+      <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${Math.round(v/catTotal*100)}%;background:${CAT_COLORS[i%CAT_COLORS.length]}"></div></div>
+      <span class="cat-bar-pct">${Math.round(v/catTotal*100)}%</span>
       <span class="cat-bar-amt">₹${Math.round(v).toLocaleString()}</span>
     </div>`).join('')
     : '<div class="empty"><div class="empty-text">No data</div></div>';
 }
 
 function renderHistory() {
-  const rows = histFilter==='all' ? allData : allData.filter(r=>(r.category||r.type)===histFilter);
+  const rows = histFilter==='all' ? allData : allData.filter(r=>{
+    if (histFilter === 'Refund') return (r.category||'').toLowerCase()==='refund' || parseFloat(r.amount)<0;
+    return (r.category||r.type)===histFilter;
+  });
   document.getElementById('hist-sub').textContent = rows.length + ' entries';
   document.getElementById('hist-list').innerHTML = rows.length
     ? [...rows].reverse().map(r=>txnHTML(r,true)).join('')
