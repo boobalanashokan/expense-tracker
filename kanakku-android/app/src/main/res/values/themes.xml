@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#0a0f1e</color>
+
+    <style name="Theme.Kanakku" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#3b82f6</item>
+        <item name="colorPrimaryVariant">#2563eb</item>
+        <item name="colorOnPrimary">#ffffff</item>
+        <item name="colorSurface">#1e2d45</item>
+        <item name="colorOnSurface">#f0f4ff</item>
+        <item name="android:windowBackground">#0a0f1e</item>
+        <item name="android:statusBarColor">#0a0f1e</item>
+        <item name="android:navigationBarColor">#0a0f1e</item>
+        <item name="android:textColor">#f0f4ff</item>
+        <item name="editTextStyle">@style/Widget.Kanakku.EditText</item>
+    </style>
+
+    <!-- Floating dialog theme for QuickAdd -->
+    <style name="Theme.Kanakku.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorPrimary">#3b82f6</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.7</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:textColor">#f0f4ff</item>
+        <item name="android:statusBarColor">#0a0f1e</item>
+    </style>
+
+    <style name="Widget.Kanakku.EditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">#f0f4ff</item>
+        <item name="android:textColorHint">#4a6590</item>
+        <item name="android:background">@drawable/bg_field</item>
+    </style>
+</resources>

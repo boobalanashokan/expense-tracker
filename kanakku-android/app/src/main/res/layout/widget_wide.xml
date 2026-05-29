@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wide 4×2 widget — dashboard + recent txns + quick actions -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_widget"
+    android:padding="14dp">
+
+    <!-- LEFT PANEL: stats + action buttons -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginEnd="10dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:id="@+id/wwHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="💰 Kanakku"
+                android:textColor="#93c5fd"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/wwRefreshBtn"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:text="⟳"
+                android:textColor="#4a6590"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:background="@drawable/bg_icon_btn"/>
+        </LinearLayout>
+
+        <!-- Month label -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="THIS MONTH"
+            android:textColor="#6b85b0"
+            android:textSize="9sp"
+            android:letterSpacing="0.1"/>
+
+        <!-- Month amount -->
+        <TextView
+            android:id="@+id/wwMonth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="₹—"
+            android:textColor="#f0f4ff"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Today row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TODAY  "
+                android:textColor="#6b85b0"
+                android:textSize="9sp"
+                android:letterSpacing="0.1"/>
+
+            <TextView
+                android:id="@+id/wwToday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₹—"
+                android:textColor="#93c5fd"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <!-- Action buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <LinearLayout
+                android:id="@+id/wwAddBtn"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="5dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/bg_btn_blue">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="➕  Add"
+                    android:textColor="#ffffff"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/wwRefundBtn"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/bg_btn_green">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="↩  Refund"
+                    android:textColor="#34d399"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Updated time -->
+        <TextView
+            android:id="@+id/wwUpdated"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#2d3f5e"
+            android:textSize="8sp"/>
+
+    </LinearLayout>
+
+    <!-- DIVIDER -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#2d3f5e"
+        android:layout_marginHorizontal="4dp"/>
+
+    <!-- RIGHT PANEL: recent transactions -->
+    <LinearLayout
+        android:id="@+id/wwTxnSection"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="10dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RECENT"
+            android:textColor="#6b85b0"
+            android:textSize="9sp"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Transaction row 1 -->
+        <LinearLayout
+            android:id="@+id/wwRow1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="7dp"
+            android:padding="6dp"
+            android:background="@drawable/bg_txn_row">
+
+            <TextView
+                android:id="@+id/wwT1Name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#c5d3ee"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/wwT1Amt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#f87171"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <!-- Transaction row 2 -->
+        <LinearLayout
+            android:id="@+id/wwRow2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="7dp"
+            android:padding="6dp"
+            android:background="@drawable/bg_txn_row">
+
+            <TextView
+                android:id="@+id/wwT2Name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#c5d3ee"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/wwT2Amt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#f87171"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <!-- Transaction row 3 -->
+        <LinearLayout
+            android:id="@+id/wwRow3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="6dp"
+            android:background="@drawable/bg_txn_row">
+
+            <TextView
+                android:id="@+id/wwT3Name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#c5d3ee"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/wwT3Amt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#f87171"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

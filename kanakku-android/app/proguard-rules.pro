@@ -1,0 +1,3 @@
+-keep class com.kanakku.app.** { *; }
+-keep class okhttp3.** { *; }
+-dontwarn okhttp3.**

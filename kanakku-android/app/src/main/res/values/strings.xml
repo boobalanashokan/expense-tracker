@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kanakku</string>
+    <string name="widget_small_desc">Kanakku — quick spend overview</string>
+    <string name="widget_wide_desc">Kanakku — dashboard with recent expenses</string>
+</resources>

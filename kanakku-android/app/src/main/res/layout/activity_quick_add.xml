@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:padding="20dp">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="➕ Add Expense"
+        android:textColor="#f0f4ff"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Amount -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AMOUNT (₹)"
+        android:textColor="#6b85b0"
+        android:textSize="10sp"
+        android:letterSpacing="0.08"
+        android:layout_marginBottom="4dp"/>
+    <EditText
+        android:id="@+id/etAmount"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_field"
+        android:padding="12dp"
+        android:textColor="#f0f4ff"
+        android:textColorHint="#4a6590"
+        android:hint="0"
+        android:inputType="numberDecimal"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Description -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DESCRIPTION"
+        android:textColor="#6b85b0"
+        android:textSize="10sp"
+        android:letterSpacing="0.08"
+        android:layout_marginBottom="4dp"/>
+    <EditText
+        android:id="@+id/etType"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_field"
+        android:padding="12dp"
+        android:textColor="#f0f4ff"
+        android:textColorHint="#4a6590"
+        android:hint="e.g. Grocery, Petrol, Lunch"
+        android:inputType="text"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Row: Category + Date -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginEnd="8dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CATEGORY"
+                android:textColor="#6b85b0"
+                android:textSize="10sp"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="4dp"/>
+            <Spinner
+                android:id="@+id/spCategory"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_field"
+                android:paddingStart="12dp"
+                android:popupBackground="#1e2d45"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="DATE"
+                android:textColor="#6b85b0"
+                android:textSize="10sp"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="4dp"/>
+            <EditText
+                android:id="@+id/etDate"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_field"
+                android:padding="12dp"
+                android:textColor="#f0f4ff"
+                android:focusable="false"
+                android:textSize="13sp"
+                android:cursorVisible="false"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Progress -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Cancel"
+            android:textColor="#8ba3cc"
+            android:backgroundTint="#1e2d45"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:cornerRadius="12dp"/>
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2"
+            android:text="Save Expense"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3b82f6"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:cornerRadius="12dp"/>
+    </LinearLayout>
+
+</LinearLayout>
