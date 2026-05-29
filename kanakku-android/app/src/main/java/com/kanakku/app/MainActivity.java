@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
 
-    // ── CHANGE THIS to your actual GitHub Pages URL ──
+    // ── Your hosted web app URL ──
     public static final String APP_URL =
             "https://boobalanashokan.github.io/expense-tracker/index.html";
 
@@ -25,11 +25,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
 
-        // Handle widget quick-add action
+        // Handle widget actions
         handleIntent(getIntent());
 
         setupWebView();
@@ -49,12 +50,17 @@ public class MainActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
+
         settings.setAllowFileAccess(true);
+
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
+
         settings.setMediaPlaybackRequiresUserGesture(false);
+
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         // Cookies
@@ -73,8 +79,11 @@ public class MainActivity extends AppCompatActivity {
 
                 String url = request.getUrl().toString();
 
-                // Open Google Sign-In externally
-                if (url.contains("accounts.google.com")) {
+                // Open authentication pages externally
+                if (url.contains("accounts.google.com") ||
+                    url.contains("firebaseapp.com") ||
+                    url.contains("__/auth") ||
+                    url.contains("oauth")) {
 
                     Intent intent = new Intent(
                             Intent.ACTION_VIEW,
@@ -82,19 +91,19 @@ public class MainActivity extends AppCompatActivity {
                     );
 
                     startActivity(intent);
+
                     return true;
                 }
 
-                // Keep Kanakku-related URLs inside WebView
+                // Keep app URLs inside WebView
                 if (url.contains("boobalanashokan.github.io") ||
                     url.contains("script.google.com") ||
-                    url.contains("googleapis.com") ||
-                    url.contains("firebaseapp.com")) {
+                    url.contains("googleapis.com")) {
 
                     return false;
                 }
 
-                // Open all other links externally
+                // Open all other URLs externally
                 Intent intent = new Intent(
                         Intent.ACTION_VIEW,
                         Uri.parse(url)
@@ -131,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+
         webView.saveState(outState);
     }
 
@@ -150,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Refresh widget
         Intent refresh = new Intent("com.kanakku.WIDGET_REFRESH");
+
         refresh.setPackage(getPackageName());
 
         sendBroadcast(refresh);
