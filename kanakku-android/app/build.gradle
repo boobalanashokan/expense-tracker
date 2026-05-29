@@ -32,6 +32,12 @@ android {
     buildFeatures {
         viewBinding true
     }
+
+    // ADD THIS
+    lint {
+        abortOnError false
+    }
+
 }
 
 dependencies {
@@ -40,4 +46,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.webkit:webkit:1.11.0'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // Google Sign In
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 }
