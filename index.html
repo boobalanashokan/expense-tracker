@@ -613,6 +613,26 @@ const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 let currentUser = null;
 
+window.handleNativeGoogleAuth = async function(idToken) {
+  try {
+    // Disable the login button and show loading state
+    document.getElementById('l-btn').disabled = true;
+    
+    // Create credential object with Google auth package
+    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+    
+    // Sign-in with the Web SDK using the Native ID Token
+    const result = await auth.signInWithCredential(credential);
+    console.log("Logged in successfully with native Google token:", result.user);
+    
+  } catch (error) {
+    console.error("Native Authentication Failed:", error);
+    showLoginErr(friendlyAuthError(error.code) || error.message);
+    document.getElementById('l-btn').disabled = false;
+  }
+};
+
+
 auth.onAuthStateChanged(user => {
   currentUser = user;
   if (user) {
@@ -648,12 +668,24 @@ async function doEmailAuth(){
   catch(e){showLoginErr(friendlyAuthError(e.code));}
   document.getElementById('l-btn').disabled=false;
 }
-async function doGoogle(){try{await auth.signInWithPopup(googleProvider);}catch(e){showLoginErr(friendlyAuthError(e.code));}}
+async function doGoogle() {
+  try {
+    // If running in the Android companion app, route login natively
+    if (window.AndroidAuth && typeof window.AndroidAuth.startGoogleSignIn === 'function') {
+      window.AndroidAuth.startGoogleSignIn();
+    } else {
+      // Normal browser fallback (e.g. running in custom Safari or desktop Chrome)
+      await auth.signInWithPopup(googleProvider);
+    }
+  } catch (e) {
+    showLoginErr(friendlyAuthError(e.code));
+  }
+}
 function signOut(){auth.signOut();togglePopover();}
 function friendlyAuthError(code){
   const map={'auth/user-not-found':'No account with that email.','auth/wrong-password':'Incorrect password.','auth/email-already-in-use':'Email already registered. Try signing in.','auth/weak-password':'Password must be at least 6 characters.','auth/invalid-email':'Please enter a valid email.','auth/popup-closed-by-user':'Google sign-in was cancelled.'};
   return map[code]||'Something went wrong. Try again.';
-}
+} 
 
 // ════════════════════════════════════════════════════
 //  State
